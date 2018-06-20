@@ -1,0 +1,297 @@
+/**
+ * <p>Title: Neural Network</p>
+ * <p>Description: Aspirant work</p>
+ * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Company: </p>
+ * @author mrka
+ * @version 1.0
+ */
+
+package neuronnetwork;
+
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import java.io.*;
+import neurnetmodel.NeuronNet;
+
+public class NrNetCalcFrame extends JFrame {
+  NeuronNet nrn;
+  NrNetPnl jPnNrNet;
+
+  JToolBar jToolBar1 = new JToolBar();
+  JPanel jPanel1 = new JPanel();
+  JPanel jPanel2 = new JPanel();
+  JButton jButton1 = new JButton();
+  JScrollPane scrollPane;
+  JTable jTable1;
+  boolean blIsCompare;
+
+  String columnNames[];
+  Object tblData[][];
+
+  float iOtNrNet[][][];
+  JButton jButton2 = new JButton();
+
+  public NrNetCalcFrame(NrNetPnl jPnNrNet0, NeuronNet nrn0) {
+    nrn=nrn0;
+    jPnNrNet=jPnNrNet0;
+    try {
+      jbInit();
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void jbInit() throws Exception {
+    this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+    jButton1.setText("Рассчитать сеть");
+    jButton1.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jButton1_actionPerformed(e);
+      }
+    });
+
+    jButton2.setText("Сохранить данные");
+    jButton2.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jButton2_actionPerformed(e);
+      }
+    });
+    this.getContentPane().add(jToolBar1, BorderLayout.NORTH);
+    jToolBar1.add(jButton1, null);
+    jToolBar1.add(jButton2, null);
+    this.getContentPane().add(jPanel2,  BorderLayout.SOUTH);
+    this.getContentPane().add(jPanel1, BorderLayout.CENTER);
+
+    int iQInp, i, j, iQOut;
+
+    iQInp=nrn.getQntInptNeuron();
+    if(setCalcData()!=true){
+      tblData=new Object[1][];
+      tblData[0]=new Object[iQInp];
+      for(i=0;i<iQInp;i++){
+        tblData[0][i]="-0";
+      }
+    }
+    iOtNrNet=new float[tblData.length][nrn.getQntOutpNeuron()][2];
+    if(!blIsCompare) {
+      columnNames=new String[iQInp];
+      for(i=0;i<columnNames.length;i++){
+        columnNames[i]="Inpt"+i;
+      }
+    }
+    else {
+      iQOut=nrn.getQntOutpNeuron();
+      columnNames=new String[iQInp+iQOut];
+      for(i=0;i<iQOut;i++){
+        columnNames[i]="Outp"+i;
+      }
+      for(i=iQOut,j=0;i<columnNames.length;i++,j++){
+        columnNames[i]="Inpt"+j;
+      }
+    }
+    jTable1 = new JTable(tblData,columnNames);
+    jTable1.setPreferredScrollableViewportSize(new Dimension(iQInp*35, 70));
+    jTable1.setCellSelectionEnabled(true);
+    scrollPane = new JScrollPane(jTable1);
+    jPanel1.add(scrollPane, null);
+    jPanel2.setPreferredSize(new Dimension(120, 250));
+  }
+
+  boolean setCalcData(){
+    String holdstr;
+
+    FileDialog lfd = new FileDialog(getFrame(), "Load data...", FileDialog.LOAD);
+    lfd.show();
+    String filename = lfd.getFile();
+    String filepath = lfd.getDirectory() + lfd.getFile();
+
+    try {
+      BufferedReader in = new BufferedReader(new FileReader(filepath));
+      String strLine;
+
+      strLine=in.readLine();
+      if (strLine.startsWith("#NeuralNetwok network calc data file")) {blIsCompare=false;}
+      else {
+        if(strLine.startsWith("#NeuralNetwok network teach data file")) {blIsCompare=true;}
+        else {System.err.println("Invalid network calc data file (1): " + filename); in.close(); return false;}
+      }
+      do {strLine=in.readLine();} while(strLine.startsWith("#"));
+      if(!strLine.startsWith("[QNT ROWS]")) { System.err.println("Invalid network calc data file (2): " + filename); in.close(); return false;}
+      do {strLine=in.readLine();} while(strLine.startsWith("#"));
+      int iQntRow=Integer.valueOf(strLine).intValue();
+      int iQOut=0;
+      if(blIsCompare) {
+        do {strLine=in.readLine();} while(strLine.startsWith("#"));
+        if(!strLine.startsWith("[QNT OUTPUT NEUR]")) { System.err.println("Invalid network calc data file (3): " + filename); in.close(); return false; }
+        do {strLine=in.readLine();} while(strLine.startsWith("#"));
+        iQOut=Integer.valueOf(strLine).intValue();
+      }
+      do {strLine=in.readLine();} while(strLine.startsWith("#"));
+      if(!strLine.startsWith("[QNT INPUT NEUR]")) { System.err.println("Invalid network calc data file (3): " + filename); in.close(); return false; }
+      do {strLine=in.readLine();} while(strLine.startsWith("#"));
+      int iQInp=Integer.valueOf(strLine).intValue();
+      do {strLine=in.readLine();} while(strLine.startsWith("#"));
+      if(blIsCompare) {
+        if(!strLine.startsWith("[TEACH DATA]")) { System.err.println("Invalid network calc data file (4): " + filename); in.close(); return false; }
+      }
+      else
+        if(!strLine.startsWith("[CALC DATA]")) { System.err.println("Invalid network calc data file (4): " + filename); in.close(); return false; }
+      tblData=new Object[iQntRow][iQInp+iQOut];
+      int i=0,j;
+      while ((strLine=in.readLine()) != null) {
+        if(strLine.startsWith("#"))
+          do {strLine=in.readLine();} while(strLine.startsWith("#"));
+        holdstr=strLine;
+        int iStrNum=0,iEndNum;
+        j=0;
+        float f=0;
+        char ch[]=holdstr.toCharArray();
+        int len=holdstr.length();
+        for(int k=0;k<len;k++) {
+          if(ch[k]=='\t' || k==(len-1)) {
+            if(k!=(len-1)) iEndNum=k;
+            else iEndNum=len;
+            String sz=holdstr.substring(iStrNum,iEndNum);
+            f=Float.valueOf(sz).floatValue();
+            tblData[i][j++]=new Float(f);
+            iStrNum=iEndNum+1;
+          }
+        }
+        i++;
+      }
+      in.close();
+
+    } catch (java.io.IOException ioe) {
+        System.err.println("Error reading network calc data file: " + filename);
+        return false;
+    }
+    return true;
+  }
+
+  void jButton1_actionPerformed(ActionEvent e) {
+    int i, j,k, iQntOtp;
+    float f;
+
+    try {
+      iQntOtp=nrn.getQntOutpNeuron();
+      for(i=0;i<tblData.length;i++) {
+        nrn.netReset();
+        for(j=0;j<iQntOtp;j++)
+          iOtNrNet[i][j][1]=nrn.getOtpNeuron(j);
+        for(j=iQntOtp,k=0;j<tblData[i].length;j++,k++) {
+          tblData[i][j]=jTable1.getValueAt(i,j);
+          f=Float.valueOf(tblData[i][j].toString()).floatValue();
+          nrn.setInptNeuron(k,f);
+        }
+        nrn.calcNet();
+        for(j=0;j<iQntOtp;j++)
+          iOtNrNet[i][j][0]=nrn.getOtpNeuron(j);
+      }
+    }
+    catch(Exception err) {
+      err.printStackTrace();
+    }
+    jPnNrNet.paint(jPnNrNet.getGraphics());
+    this.repaint();
+  }
+
+  public void paint(Graphics g){
+    Graphics gPnl;
+    int i,j, iXStep, iY0;
+
+    super.paint(g);
+    gPnl=jPanel2.getGraphics();
+    gPnl.clearRect(0,0,jPanel2.getWidth(),jPanel2.getHeight());
+    gPnl.drawLine(jPanel2.getWidth()/2, 0, jPanel2.getWidth()/2, jPanel2.getHeight());
+//    iY0=jPanel2.getHeight()/2;
+    int iYCoordLine=0, iYCoordLineSteep=0;;
+    iYCoordLineSteep=jPanel2.getHeight()/(2*iOtNrNet[0].length);
+    iXStep=(jPanel2.getWidth()-20)/(iOtNrNet.length-1);
+    iY0=0;
+    for(i=0;i<iOtNrNet[0].length;i++){
+      for(i=1;i<iOtNrNet.length;i++) {
+        gPnl.drawLine(10+iXStep*i, iYCoordLine, 10+iXStep*i,iYCoordLine+iYCoordLineSteep+iYCoordLineSteep);
+      }
+      iYCoordLine+=iYCoordLineSteep;
+      gPnl.setColor(Color.black);
+      gPnl.drawLine(0, iYCoordLine, jPanel2.getWidth(), iYCoordLine);
+      gPnl.setColor(Color.gray);
+      iYCoordLine+=iYCoordLineSteep;
+    }
+    int iYkoef=0;
+    iYkoef=(int)(iYCoordLineSteep*0.9/5);
+    if(iOtNrNet.length>1) {
+      for(i=1;i<iOtNrNet.length;i++) {
+        iY0=0;
+        for(j=0;j<iOtNrNet[i].length;j++) {
+          iY0+=iYCoordLineSteep;
+          gPnl.setColor(Color.blue);
+          gPnl.drawLine(10+iXStep*(i-1), (int)(iY0-(iOtNrNet[i-1][j][0]*iYkoef)), 10+iXStep*i,(int)(iY0-iOtNrNet[i][j][0]*iYkoef));
+          gPnl.setColor(Color.red);
+          gPnl.drawLine(10+iXStep*(i-1), (int)(iY0-iOtNrNet[i-1][j][1]*iYkoef), 10+iXStep*i,(int)(iY0-iOtNrNet[i][j][1]*iYkoef));
+          iY0+=iYCoordLineSteep;
+        }
+      }
+    }
+    else {
+      iY0=0;
+      for(j=0;j<iOtNrNet[0].length;j++) {
+        iY0+=iYCoordLineSteep;
+        gPnl.setColor(Color.blue);
+        gPnl.drawLine(10, (int)(iY0-iOtNrNet[0][j][0]*iYkoef), jPanel2.getWidth()-10,(int)(iY0-iOtNrNet[0][j][0]*iYkoef));
+        gPnl.setColor(Color.red);
+        gPnl.drawLine(10, (int)(iY0-iOtNrNet[0][j][1]*iYkoef), jPanel2.getWidth()-10,(int)(iY0-iOtNrNet[0][j][1]*iYkoef));
+        iY0+=iYCoordLineSteep;
+      }
+    }
+  }
+
+    //Save action performed
+  void jButton2_actionPerformed(ActionEvent e) {
+    String holdstr;
+    int iQntRow;
+
+    FileDialog sfd = new FileDialog(getFrame(), "Save data...", FileDialog.SAVE);
+    sfd.show();
+    String filename = sfd.getFile();
+    String filepath = sfd.getDirectory() + sfd.getFile();
+
+    try {
+      BufferedWriter outn = new BufferedWriter(new FileWriter(filepath));
+      outn.write("#NeuralNetwok network calc data file\n");
+      outn.write("[QNT ROWS]\n");
+      iQntRow=jTable1.getRowCount();
+      outn.write(iQntRow+"\n");
+      outn.write("[QNT INPUT NEUR]\n");
+      int iQInp=jTable1.getColumnCount();
+      outn.write(iQInp+"\n");
+      outn.write("[CALC DATA]\n");
+      for(int i=0;i<iQntRow;i++) {
+        String str="";
+        for(int j=0;j<iQInp;j++) {
+          str+=jTable1.getValueAt(i,j);
+          if (j!=(iQInp-1)) str+="\t";
+        }
+        str+="\n";
+        outn.write(str);
+      }
+      outn.close();
+
+    } catch (java.io.IOException ioe) {
+        System.err.println("Error writing network calc data file: " + filename);
+        return;
+    }
+  }
+
+  public Frame getFrame() {
+    Component c = this;
+    while (c != null && !(c instanceof Frame)) {
+      c = c.getParent();
+    }
+    return (Frame) c;
+  }
+
+}

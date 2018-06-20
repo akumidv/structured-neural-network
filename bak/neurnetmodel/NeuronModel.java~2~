@@ -1,0 +1,99 @@
+package neurnetmodel;
+
+public class NeuronModel
+{
+  int iQntIn;       /* Количество входов нейрона */
+  int iModel;       /* Номер модели нейрона */
+  float flNeur;
+  float flW[];      /* Вес входа */
+  float flO[];      /* Входы нейрона */
+
+  public NeuronModel(int i1,int i2)
+  {
+    iQntIn=i1;
+    iModel=i2;
+    flW=new float[iQntIn];
+    flO=new float[iQntIn];
+    flO[0]=1;
+  }
+
+  float calc_model()
+  {
+    switch(iModel)
+    {
+      case 0: // Нулевая модель, возврат "1"
+       flNeur=flO[0];
+       return flNeur;
+      case 1: // Модель МакКаллока-Питса
+        return mdlMcCuloch_Pitts();
+    }
+    return mdlMcCuloch_Pitts();
+  }
+
+  private float mdlMcCuloch_Pitts()
+  {
+    flNeur=0;
+    int i;
+
+    for(i=0;i<iQntIn;i++)
+    {
+      flNeur+=flW[i]*flO[i];
+    }
+    return flNeur;
+  }
+
+  public int getQntIn()
+  {
+    return iQntIn;
+  }
+
+
+  public void setW(float f[])
+  {
+    flW=f;
+  }
+
+  public void setW(int i, float f)
+  {
+    flW[i]=f;
+  }
+
+  public float[] getW()
+  {
+    return flW;
+  }
+
+  public float getW(int i)
+  {
+    return flW[i];
+  }
+
+  public void setO(float f[])
+  {
+    flO=f;
+    if(iModel!=0) flO[0]=1;
+  }
+
+  public void setO(int i, float f)
+  {
+    if(iModel==0 || i!=0)
+    {
+      flO[i]=f;
+    }
+  }
+
+  public float[] getO()
+  {
+    return flO;
+  }
+
+  public float getO(int i)
+  {
+    return flO[i];
+  }
+
+  public float getNeur()
+  {
+    return flNeur;
+  }
+}

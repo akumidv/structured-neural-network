@@ -1,0 +1,438 @@
+/**
+ * <p>Title: Neural Network</p>
+ * <p>Description: Aspirant work</p>
+ * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Company: </p>
+ * @author mrka
+ * @version 1.0
+ */
+package neuronnetwork;
+
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import java.io.*;
+import neurnetmodel.NeuronNet;
+import javax.swing.border.*;
+
+public class NrNetTeachFrame extends JFrame {
+
+  public final static int ONE_SECOND = 100;//1000;
+  public final static float MAX_TEACH_ERR = 1.5f;
+  public final static String tchtmpfilepath = ".net_analyse-temp.txt";
+  public final static String nettmpfilepath = ".net_tmp";
+  NeuronNet nrn;
+  NrNetPnl jPnNrNet;
+
+  JToolBar jToolBar1 = new JToolBar();
+  JPanel jPanel1 = new JPanel();
+  JPanel jPanel2 = new JPanel();
+  JButton jButton1 = new JButton();
+  JTextField jTextField1 = new JTextField();
+  JLabel jLabel1 = new JLabel();
+  JLabel jLabel2 = new JLabel();
+  Box box1;
+  Box box2;
+  JScrollPane scrollPane;
+  JTable jTable1;
+  JCheckBox jChBxAnalys = new JCheckBox();
+  String columnNames[];
+  Object tblData[][];
+  JButton jButton2 = new JButton();
+  JButton jButton3 = new JButton();
+  String filepathTeach;
+  Box box4;
+  JTextField jTextField2 = new JTextField();
+//  JProgressBar jProgressBar1 = new JProgressBar();
+  int l;
+//  Timer timer1;
+  JLabel jLabel3 = new JLabel();
+
+  public NrNetTeachFrame(NrNetPnl jPnNrNet0, NeuronNet nrn0) {
+    nrn=nrn0;
+    jPnNrNet=jPnNrNet0;
+    try {
+      jbInit();
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void jbInit() throws Exception {
+    this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+
+    jButton1.setText("Обучить сеть");
+    jButton1.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jButton1_actionPerformed(e);
+      }
+    });
+/*    timer1 = new Timer(ONE_SECOND, new java.awt.event.ActionListener() {
+        public void actionPerformed(ActionEvent evt) {
+            jProgressBar1.setValue(5);
+        }
+    });*/
+    jButton2.setText("Сохр. данные");
+    jButton2.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jButton2_actionPerformed(e);
+      }
+    });
+   jButton3.setText("Сохр.анализ обучения");
+    jButton3.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jButton3_actionPerformed(e);
+      }
+    });
+    jTextField2.setMinimumSize(new Dimension(300, 21));
+    jTextField2.setPreferredSize(new Dimension(300, 21));
+    jLabel3.setText("Резул. анализа");
+    this.getContentPane().add(jToolBar1, BorderLayout.NORTH);
+    jTextField1.setText("1");
+    jLabel1.setText("Кол.циклов");
+    box1=Box.createVerticalBox();
+    box1.add(jLabel1, null);
+    box1.add(jTextField1, null);
+    jToolBar1.add(box1, null);
+    jLabel2.setText("Анализ обучения");
+    box2=Box.createVerticalBox();
+    box2.add(jLabel2, null);
+    box2.add(jChBxAnalys, null);
+    jToolBar1.add(box2, null);
+    jToolBar1.add(jButton1, null);
+    jToolBar1.add(jButton2, null);
+    jToolBar1.add(jButton3, null);
+
+    int iQOtp, iQInp, i, j;
+
+    iQOtp=nrn.getQntOutpNeuron();
+    iQInp=nrn.getQntInptNeuron();
+    columnNames=new String[iQOtp+iQInp];
+    for(i=0;i<iQOtp;i++){
+      columnNames[i]="Outp"+i;
+    }
+    for(i=iQOtp, j=0;i<columnNames.length;i++,j++){
+      columnNames[i]="Inpt"+j;
+    }
+    if(setTeachData()!=true){
+      ;//Не заданы данные СДЕЛАТЬ ОКНО ВЫДАЧИ СООБЩЕНИЯ ОБ ОШИБКЕ
+      tblData=new Object[1][];
+      tblData[0]=new Object[iQOtp+iQInp];
+      for(i=0;i<iQOtp+iQInp;i++){
+        tblData[0][i]="-0";
+      }
+    }
+    jTable1 = new JTable(tblData,columnNames);
+    jTable1.setPreferredScrollableViewportSize(new Dimension((iQOtp+iQInp)*35, 70));
+    jTable1.setCellSelectionEnabled(true);
+    scrollPane = new JScrollPane(jTable1);
+    jPanel1.add(scrollPane, null);
+    this.getContentPane().add(jPanel1, BorderLayout.CENTER);
+    box4 = Box.createVerticalBox();
+    box4.add(jTextField2, null);
+//    jProgressBar1.setStringPainted(true);
+//    box4.add(jProgressBar1, null);
+    jPanel2.add(jLabel3, null);
+    jPanel2.add(box4, null);
+    this.getContentPane().add(jPanel2, BorderLayout.SOUTH);
+  }
+
+  boolean setTeachData() {
+    String holdstr;
+    int iQntRow;
+
+    FileDialog lfd = new FileDialog(getFrame(),
+                                        "Load data...", FileDialog.LOAD);
+    lfd.show();
+    String filename = lfd.getFile();
+    String filepath = lfd.getDirectory() + lfd.getFile();
+    filepathTeach=filepath;
+    try {
+      BufferedReader in = new BufferedReader(new FileReader(filepath));
+      if (!in.readLine().equals("#NeuralNetwok network teach data file")) {
+        System.err.println("Invalid network teach data file (1): " + filename);
+        in.close();
+        return false;
+      }
+      if(!in.readLine().equals("[QNT ROWS]")) {
+        System.err.println("Invalid network teach data file (2): " + filename);
+        in.close();
+        return false;
+      }
+      iQntRow=Integer.valueOf(in.readLine()).intValue();
+      if(!in.readLine().equals("[QNT OUTPUT NEUR]")) {
+        System.err.println("Invalid network teach data file (3): " + filename);
+        in.close();
+        return false;
+      }
+      int iQOtp=Integer.valueOf(in.readLine()).intValue();
+      if(!in.readLine().equals("[QNT INPUT NEUR]")) {
+        System.err.println("Invalid network teach data file (4): " + filename);
+        in.close();
+        return false;
+      }
+      int iQInp=Integer.valueOf(in.readLine()).intValue();
+      if(!in.readLine().equals("[TEACH DATA]")) {
+        System.err.println("Invalid network teach data file (5): " + filename);
+        in.close();
+        return false;
+      }
+      int iQCol=iQOtp+iQInp;
+      tblData=new Object[iQntRow][iQCol];
+      int i=0,j;
+      while ((holdstr = in.readLine()) != null) {
+        int iStrNum=0,iEndNum;
+        j=0;
+        float f=0;
+        char ch[]=holdstr.toCharArray();
+        int len=holdstr.length();
+        for(int k=0;k<len;k++) {
+          if(ch[k]=='\t' || k==(len-1)) {
+            if(k!=(len-1)) iEndNum=k;
+            else iEndNum=len;
+            String sz=holdstr.substring(iStrNum,iEndNum);
+            f=Float.valueOf(sz).floatValue();
+            tblData[i][j++]=new Float(f);
+            iStrNum=iEndNum+1;
+            if(j==iQCol) break;
+          }
+        }
+        i++;
+        if(i==iQntRow) break;
+      }
+
+      in.close();
+
+    } catch (java.io.IOException ioe) {
+        System.err.println("Error reading network teach data file: " +
+                           filename);
+                          return false;
+    }
+    return true;
+  }
+
+  void jButton1_actionPerformed(ActionEvent e) {
+    try {
+      int iQOtp, i, j,k;
+      float f;
+      int iQntIter=0;
+      float flSumAll0=0f, flSumAll1=0f;
+      String strResTeach;
+      BufferedWriter outn;
+      BufferedWriter outtmp;
+      float flMinErr=-1f;
+      boolean blFstIter=true;
+
+      iQOtp=nrn.getQntOutpNeuron();
+      iQntIter=Integer.valueOf(jTextField1.getText()).intValue();
+//      jProgressBar1.setMaximum(iQntIter-1);
+//      jProgressBar1.setValue(0);
+//      jProgressBar1.repaint();
+      float iOutp[][][]=new float[tblData.length][iQOtp][4];
+
+      outn = new BufferedWriter(new FileWriter(tchtmpfilepath));
+      if(jChBxAnalys.isSelected()) {
+        outn.write("#NeuralNetwok network teach analyse temp data file\n");
+        outn.write("#Speed of teach: "+String.valueOf(nrn.getN())+"\tKoef.prev steep: "+String.valueOf(nrn.getA())+"\n");
+        outn.write("#Qnt iter: "+iQntIter+"\tQnt teach examples: "+tblData.length+"\n");
+        outn.write("#Qnt outp: "+iQOtp+"\tQnt inp: "+String.valueOf(tblData[0].length-iQOtp)+"\n");
+        outn.write("#Teach file: "+filepathTeach+"\n");
+      }
+//      timer1.start();
+      for(l=0; l<iQntIter;l++) {
+        for(i=0;i<tblData.length;i++) {
+          nrn.netReset();
+          for(j=0;j<iQOtp;j++) {
+            tblData[i][j]=jTable1.getValueAt(i,j);
+            f=Float.valueOf(tblData[i][j].toString()).floatValue();
+            nrn.setTchOtpNeuron(j,f);
+            iOutp[i][j][0]=f;
+          }
+          for(j=iQOtp,k=0;j<tblData[i].length;j++,k++) {
+            tblData[i][j]=jTable1.getValueAt(i,j);
+            f=Float.valueOf(tblData[i][j].toString()).floatValue();
+            nrn.setInptNeuron(k,f);
+          }
+          nrn.calcNet();
+          nrn.teachNet();
+        }
+        if(jChBxAnalys.isSelected()) {
+          flSumAll0=0f;
+          flSumAll1=0f;
+          for(i=0;i<tblData.length;i++) {
+            nrn.netReset();
+            for(j=iQOtp,k=0;j<tblData[i].length;j++,k++) {
+              tblData[i][j]=jTable1.getValueAt(i,j);
+              f=Float.valueOf(tblData[i][j].toString()).floatValue();
+              nrn.setInptNeuron(k,f);
+            }
+            nrn.calcNet();
+            float flSumm0=0f, flSumm1=0f;
+            for(j=0;j<iQOtp;j++) {
+              iOutp[i][j][1]=nrn.getOtpNeuron(j);
+/*              iOutp[i][j][2]=iOutp[i][j][0]-iOutp[i][j][1];
+              flSumm0+=Math.abs(iOutp[i][j][2]);
+              if((iOutp[i][j][2]<2.5f) && (iOutp[i][j][2]>(-2.5f))) iOutp[i][j][3]=0f;
+              else iOutp[i][j][3]=1f;*/
+              iOutp[i][j][2]=Math.abs(iOutp[i][j][0]-iOutp[i][j][1]);
+              flSumm0+=iOutp[i][j][2];
+              if(iOutp[i][j][2]<MAX_TEACH_ERR) iOutp[i][j][3]=0f;
+              else iOutp[i][j][3]=1f;
+              flSumm1+=iOutp[i][j][3];
+            }
+            flSumm0=flSumm0/iQOtp;
+            flSumAll0+=flSumm0;
+            flSumAll1+=flSumm1;
+          }
+          flSumAll0=flSumAll0/tblData.length;
+          if(!blFstIter) {
+            if(flMinErr>flSumAll1) {
+              flMinErr=flSumAll1;
+              try {
+                outtmp = new BufferedWriter(new FileWriter(nettmpfilepath+Float.toString(flMinErr)+".txt"));
+                outtmp.write("#NeuralNetwok network teach analyse net temp data file\n");
+                outtmp.write("#Speed of teach: "+String.valueOf(nrn.getN())+"\tKoef.prev steep: "+String.valueOf(nrn.getA())+"\n");
+                outtmp.write("#Qnt iter: "+iQntIter+"\tQnt teach examples: "+tblData.length+"\n");
+                outtmp.write("#Qnt outp: "+iQOtp+"\tQnt inp: "+String.valueOf(tblData[0].length-iQOtp)+"\n");
+                outtmp.write("#Teach file: "+filepathTeach+"\n");
+                outtmp.write("#Iter: "+l+"\n");
+                outtmp.write("#Qnt err: "+flMinErr+"Teach err: "+flSumAll0+"\n");
+
+
+                outtmp.write("[Calc model]\n");
+                outtmp.write(nrn.getCalcAlg()+"\n");
+                outtmp.write("[Teach model]\n");
+                outtmp.write(nrn.getTeachAlg()+"\n");
+                outtmp.write("[Quantity layers]\n");
+                int iQntLay=nrn.getQntNetLayers();
+                outtmp.write(iQntLay+"\n");
+                for(int i1=0;i1<iQntLay;i1++) {
+                  outtmp.write("[Quantity Neurons In Layer: "+i1+"]\n");
+                  int iQntLyNr=nrn.getQntNetLayerNeurons(i1);
+                  outtmp.write(iQntLyNr+"\n");
+                  for(int j1=0;j1<iQntLyNr;j1++) {
+                    outtmp.write("[Neuron "+i1+":"+j1+"]\n");
+                    String strNrn, strNrnW="", strNrnCnct="";
+                    strNrn=nrn.getNrnQntIn(i1,j1)+"\t";
+                    strNrn+=nrn.getQntCnct(i1,j1)+"\t";
+                    strNrn+=nrn.getNrnModel(i1,j1)+"\t";
+                    strNrn+=nrn.getNrnActFunc(i1,j1)+"\t";
+                    strNrn+=nrn.getNeurStatus(i1,j1)+"\t";
+                    strNrn+=nrn.getNText(i1,j1);
+                    int iQntCnct=nrn.getQntCnct(i1,j1);
+                    for(int k1=0;k1<iQntCnct;k1++) {
+                      strNrnCnct+=nrn.getLayer(i1,j1,k1)+":";
+                      strNrnCnct+=nrn.getNrnNum(i1,j1,k1)+":";
+                      strNrnCnct+=nrn.getNumIn(i1,j1,k1);
+                      if(k1!=(iQntCnct-1)) strNrnCnct+="\t";
+                    }
+                    float flW[]=nrn.getW(i,j);
+                    for (int k1=0;k1<flW.length;k1++) {
+                    strNrnW+=flW[k1];
+                    if(k1!=(flW.length-1)) strNrnW+="\t";
+                  }
+                  outtmp.write(strNrn+"\n");
+                  outtmp.write(strNrnCnct+"\n");
+                  outtmp.write(strNrnW+"\n");
+                }
+              }
+              outtmp.close();
+            }
+            catch(Exception err) {
+              err.printStackTrace();
+              }
+            }
+
+          }
+          else{
+            blFstIter=false;
+            flMinErr=flSumAll1;
+          }
+          outn.write(""+l+"\t"+flSumAll0+"\t"+flSumAll1+"\n");
+//          jProgressBar1.setValue(l);
+        }
+      }
+//      jTextField2.setText(l+"\t"+flSumAll0+"\t"+flSumAll1);
+      outn.close();
+    }
+    catch(Exception err) {
+      err.printStackTrace();
+    }
+//    timer1.stop();
+    jPnNrNet.paint(jPnNrNet.getGraphics());
+  }
+
+  //Save action performed
+  void jButton2_actionPerformed(ActionEvent e) {
+    String holdstr;
+    int iQntRow;
+
+    FileDialog sfd = new FileDialog(getFrame(), "Save data...", FileDialog.SAVE);
+    sfd.show();
+    String filename = sfd.getFile();
+    String filepath = sfd.getDirectory() + sfd.getFile();
+
+    try {
+      BufferedWriter outn = new BufferedWriter(new FileWriter(filepath));
+      outn.write("#NeuralNetwok network teach data file\n");
+      outn.write("[QNT ROWS]\n");
+      iQntRow=jTable1.getRowCount();
+      outn.write(iQntRow+"\n");
+      outn.write("[QNT OUTPUT NEUR]\n");
+      int iQOutp=nrn.getQntOutpNeuron();
+      outn.write(iQOutp+"\n");
+      outn.write("[QNT INPUT NEUR]\n");
+      int iQntCol=jTable1.getColumnCount();
+      int iQInp=iQntCol-iQOutp;
+      outn.write(iQInp+"\n");
+      outn.write("[TEACH DATA]\n");
+      for(int i=0;i<iQntRow;i++) {
+        String str="";
+        for(int j=0;j<iQntCol;j++) {
+          str+=jTable1.getValueAt(i,j);
+          if (j!=(iQntCol-1)) str+="\t";
+        }
+        str+="\n";
+        outn.write(str);
+      }
+      outn.close();
+
+    } catch (java.io.IOException ioe) {
+        System.err.println("Error writing network teach data file: " + filename);
+        return;
+    }
+  }
+
+    //Save analysys action performed
+  void jButton3_actionPerformed(ActionEvent e) {
+    String holdstr;
+    int iQntRow;
+
+    FileDialog sfd = new FileDialog(getFrame(), "Save data...", FileDialog.SAVE);
+    sfd.show();
+    String filename = sfd.getFile();
+    String filepath = sfd.getDirectory() + sfd.getFile();
+    try {
+      String str;
+      BufferedReader in = new BufferedReader(new FileReader(tchtmpfilepath));
+      BufferedWriter outn = new BufferedWriter(new FileWriter(filepath));
+      while((str=in.readLine()) != null)
+        outn.write(str+"\n");
+      outn.close();
+      in.close();
+    } catch (java.io.IOException ioe) {
+        System.err.println("Error writing network teach analyse data file: " + filename);
+        return;
+    }
+  }
+
+    public Frame getFrame() {
+        Component c = this;
+        while (c != null && !(c instanceof Frame)) {
+            c = c.getParent();
+        }
+        return (Frame) c;
+    }
+
+}

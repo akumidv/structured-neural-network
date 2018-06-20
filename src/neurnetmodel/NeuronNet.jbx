@@ -1,0 +1,14 @@
+[PropertyInfo]
+a,float,false,false, , ,true,<default>
+iMaxQntIterNet,int,false,false, , ,false,<default>
+iTypeNeuronNet,int,false,false, , ,false,<default>
+n,float,false,false, , ,true,<default>
+nrNet,Neuron[][],false,false, , ,false,<default>
+qntInptNeuron,int,false,false, , ,true,<default>
+qntNetLayers,int,false,false, , ,true,<default>
+qntOutpNeuron,int,false,false, , ,true,<default>
+[IconNames]
+
+
+
+

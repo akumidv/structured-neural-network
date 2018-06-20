@@ -1,0 +1,25 @@
+[PropertyInfo]
+boxIn,Box[],false,false, , ,false,<default>
+boxOn,Box,false,false, , ,false,<default>
+boxW,Box[],false,false, , ,false,<default>
+fO,float[],false,false, , ,false,<default>
+fW,float[],false,false, , ,false,<default>
+iLy,int,false,false, , ,false,<default>
+iNr,int,false,false, , ,false,<default>
+jButton1,JButton,false,false, , ,false,<default>
+jCheckBox1,JCheckBox,false,false, , ,false,<default>
+jLabelIn,JLabel[],false,false, , ,false,<default>
+jLabelOn,JLabel,false,false, , ,false,<default>
+jLabelW,JLabel[],false,false, , ,false,<default>
+jPanel1,JPanel,false,false, , ,false,<default>
+jPanel2,JPanel,false,false, , ,false,<default>
+jTextFieldIn,JTextField[],false,false, , ,false,<default>
+jTextFieldOn,JTextField,false,false, , ,false,<default>
+jTextFieldW,JTextField[],false,false, , ,false,<default>
+jToolBar1,JToolBar,false,false, , ,false,<default>
+nrn,NeuronNet,false,false, , ,false,<default>
+[IconNames]
+
+
+
+

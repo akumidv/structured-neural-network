@@ -1,0 +1,20 @@
+package neuronnetwork;
+
+/**
+ * <p>Title: Neural Network</p>
+ * <p>Description: Aspirant work</p>
+ * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Company: </p>
+ * @author mrka
+ * @version 1.0
+ */
+
+public class TeachAnalyse extends Thread {
+
+  public TeachAnalyse() {
+  }
+
+  private void run() {
+    sleep(10000);
+  }
+}

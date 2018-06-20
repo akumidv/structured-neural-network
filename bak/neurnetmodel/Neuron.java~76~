@@ -1,0 +1,287 @@
+package neurnetmodel;
+
+import neurnetmodel.NeuronActivateFunc;
+import neurnetmodel.NeuronModel;
+import neurnetmodel.NeuronTeach;
+
+
+public class Neuron
+{
+  float flQ;        /* Порог нейрона */
+  float flOn;       /* Выходное значение нейрона */
+
+  int iLayer[];       /* если значение -1, то это берутся из входа Нейронной сети */
+  int iNeuronNum[];   /*Номер нейрона в слое*/
+  int iNumIn[];       /*Номер входа*/
+  short shStatus; /* 1 - выходной, 0 - обычный, -1 входной */
+  short shReady=-1; /* -1 - в нейрон не занесены входные данные, 0-нейрон не расчитан, 1-нейрон расчитан */
+  short shTchReady=-1; /* -1 - в нейрон не занесены входные данные, 0-нейрон не обучен, 1-нейрон обучен */
+  boolean blSetIn[];
+  String szNeuronText;
+
+  NeuronActivateFunc naf;
+  NeuronModel nm;
+  NeuronTeach nt;
+
+  public float getOn() {
+    return flOn;
+  }
+
+  public void setCalcT(float f) {
+    nt.setCalcT(f,flOn);
+    shTchReady=0;
+  }
+
+  public void setTchOn(float flTOn) {
+    nt.setT(flTOn);
+    shTchReady=0;
+  }
+
+  public float getTchOn() {
+    return nt.getT();
+  }
+
+  public Neuron(int iIn, int iModel,int iActivFunc) {
+    int i;
+
+    nm=new NeuronModel(iIn,iModel);
+    naf=new NeuronActivateFunc(iActivFunc);
+    nt=new NeuronTeach(nm);
+
+    blSetIn=new boolean[nm.getQntIn()];
+
+    for(i=0;i<nm.getQntIn();i++) {
+//      nm.setW(i,0.5f);
+      nm.setW(i,0f);
+      blSetIn[i]=false;
+    }
+    blSetIn[0]=true;
+    nm.setW(0,5f);
+    nm.setW(0,0f);
+  }
+
+  public Neuron(int iIn, int iModel,int iActivFunc, int iC[][], short shSt, String szNText) {
+    int i;
+
+    nm=new NeuronModel(iIn,iModel);
+    naf=new NeuronActivateFunc(iActivFunc);
+    nt=new NeuronTeach(nm);
+    szNeuronText=szNText;
+    blSetIn=new boolean[nm.getQntIn()];
+
+    for(i=0;i<nm.getQntIn();i++) {
+//      nm.setW(i,0.5f);
+      nm.setW(i,0.1f);
+      blSetIn[i]=false;
+    }
+
+    iLayer=iC[0];
+    iNeuronNum=iC[1];
+    iNumIn=iC[2];
+    shStatus=shSt;
+    if(shStatus!=-1) {
+      nm.setW(0,5f);
+      blSetIn[0]=true;
+    }
+  }
+
+  public Neuron(int iIn, int iModel,int iActivFunc, int iC[][], short shSt) {
+    int i;
+
+    nm=new NeuronModel(iIn,iModel);
+    naf=new NeuronActivateFunc(iActivFunc);
+    nt=new NeuronTeach(nm);
+
+    blSetIn=new boolean[nm.getQntIn()];
+
+    for(i=0;i<nm.getQntIn();i++) {
+      nm.setW(i,0.5f);
+      blSetIn[i]=false;
+    }
+
+    iLayer=iC[0];
+    iNeuronNum=iC[1];
+    iNumIn=iC[2];
+    shStatus=shSt;
+    if(shStatus!=-1) {
+      nm.setW(0,5f);
+      blSetIn[0]=true;
+    }
+  }
+
+  float calc_neuron()
+  {
+    flOn=naf.activate(nm.calc_model());
+    shReady=1;
+    return flOn;
+  }
+
+  void teach_neuron(int iTeachAlg)
+  {
+    nt.teach(flOn,iTeachAlg);
+    nt.apply_teach();
+    shTchReady=1;
+  }
+
+  public void setW(float f[])
+  {
+    nm.setW(f);
+    if(shReady==1) shReady=0;
+  }
+
+  public void setW(int i, float f)
+  {
+    nm.setW(i,f);
+    if(shReady==1) shReady=0;
+  }
+
+  public float[] getW()
+  {
+    return nm.getW();
+  }
+
+  public float getW(int i)
+  {
+    return nm.getW(i);
+  }
+
+  public void setO(float f[])
+  {
+    nm.setO(f);
+    shReady=0;
+  }
+
+  public void setO(int i, float f)
+  {
+    nm.setO(i,f);
+    if(shReady==-1){
+      blSetIn[i]=true;
+      shReady=0;
+      for(int j=0;j<nm.getQntIn();j++)
+      {
+        if(blSetIn[j]==false)
+        {
+          shReady=-1;
+          break;
+        }
+      }
+    }
+    else{
+      shReady=0;
+    }
+  }
+
+  public int getQntIn() { return nm.getQntIn(); }
+  public int getModel() { return nm.getModel(); }
+  public int getActFunc() { return naf.getActFunc(); }
+
+
+  public float[] getO()
+  {
+    return nm.getO();
+  }
+
+  public float getO(int i)
+  {
+    return nm.getO(i);
+  }
+
+  int getQntCnct()
+  {
+    return iLayer.length;
+  }
+
+  int getNrnNum(int i)
+  {
+    return iNeuronNum[i];
+  }
+
+  int getLayer(int i)
+  {
+    return iLayer[i];
+  }
+
+  int getNumIn(int i)
+  {
+    return iNumIn[i];
+  }
+
+  short getStatus()
+  {
+    return shStatus;
+  }
+
+  short getReady()
+  {
+    return shReady;
+  }
+
+  short getTchReady()
+  {
+    return shTchReady;
+  }
+
+  void setReadyClear()
+  {
+    shReady=-1;
+    for(int i=0;i<nm.getQntIn();i++)
+    {
+      blSetIn[i]=false;
+      if(shStatus!=-1)
+        blSetIn[0]=true;
+    }
+  }
+
+  void setReadyClearOnlyNet()
+  {
+//    if(shStatus!=-1)
+      shReady=0;
+//    else
+//      shReady=0;
+  }
+
+  void setTchReadyClearOnlyNet()
+  {
+    shTchReady=0;
+  }
+
+  void setTchReadyClear()
+  {
+    shTchReady=-1;
+  }
+
+
+
+  public float getG()
+  {
+    return nt.getG();
+  }
+
+  public float getA()
+  {
+    return nt.getA();
+  }
+
+  public float getN()
+  {
+    return nt.getN();
+  }
+
+  public void setA(float flA)
+  {
+    nt.setA(flA);
+  }
+
+  public void setN(float flN)
+  {
+    nt.setN(flN);
+  }
+
+  public String getNText() {
+    return szNeuronText;
+  }
+  public void setNText(String szNText) {
+    szNeuronText=szNText;
+  }
+
+}

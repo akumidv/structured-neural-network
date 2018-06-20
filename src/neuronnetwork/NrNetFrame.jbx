@@ -1,0 +1,31 @@
+[PropertyInfo]
+iQNTIn,int,false,false, , ,false,<default>
+iQntLay,int,false,false, , ,false,<default>
+iQNTOut,int,false,false, , ,false,<default>
+iValMax,int,false,false, , ,false,<default>
+iValMin,int,false,false, , ,false,<default>
+iXSteep,int,false,false, , ,false,<default>
+iYNxtLy,int,false,false, , ,false,<default>
+jBtCalc,JButton,false,false, , ,false,<default>
+jBtTchWind,JButton,false,false, , ,false,<default>
+jBtTeach,JButton,false,false, , ,false,<default>
+jCmBxModel,JComboBox,false,false, , ,false,<default>
+jMenuBar1,JMenuBar,false,false, , ,false,<default>
+jMenuFile,JMenu,false,false, , ,false,<default>
+jMenuFileExit,JMenuItem,false,false, , ,false,<default>
+jMenuHelp,JMenu,false,false, , ,false,<default>
+jMenuHelpAbout,JMenuItem,false,false, , ,false,<default>
+jMenuNrNet,JMenu,false,false, , ,false,<default>
+jMenuNrNetReset,JMenuItem,false,false, , ,false,<default>
+jMenuNrNetSetIn,JMenuItem,false,false, , ,false,<default>
+jPnNrNet,NrNetPnl,false,false, , ,false,<default>
+jToolBar1,JToolBar,false,false, , ,false,<default>
+neurXY,int[][][],false,false, , ,false,<default>
+nrn,NeuronNet,false,false, , ,false,<default>
+WHeight,int,false,false, , ,false,<default>
+WWidth,int,false,false, , ,false,<default>
+[IconNames]
+
+
+
+

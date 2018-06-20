@@ -1,0 +1,627 @@
+/**
+ * <p>Title: Neural Network</p>
+ * <p>Description: Aspirant work</p>
+ * <p>Copyright: Copyright (c) 2002</p>
+ * <p>Company: </p>
+ * @author mrka
+ * @version 1.0
+ */
+
+package neuronnetwork;
+
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import java.io.*;
+import neurnetmodel.NeuronNet;
+import javax.swing.border.*;
+
+public class NrNetFrame extends JFrame {
+  JPanel contentPane;
+  JMenuBar jMenuBar1 = new JMenuBar();
+  JMenu jMenuFile = new JMenu();
+  JMenuItem jMenuFileOpen = new JMenuItem();
+  JMenuItem jMenuFileSave = new JMenuItem();
+  JMenuItem jMenuFileExit = new JMenuItem();
+  JMenu jMenuNrNet = new JMenu();
+  JMenuItem jMenuNrNetSetIn = new JMenuItem();
+  JMenuItem jMenuNrNetSetTch = new JMenuItem();
+  JMenuItem jMenuNrNetReset = new JMenuItem();
+  JMenuItem jMenuNrNetOnlReset = new JMenuItem();
+  JMenuItem jMenuNrNetTeach = new JMenuItem();
+  JMenuItem jMenuNrNetCalc = new JMenuItem();
+  JMenu jMenuHelp = new JMenu();
+  JMenuItem jMenuHelpAbout = new JMenuItem();
+  JToolBar jToolBar1 = new JToolBar();
+  JButton jBtTeach = new JButton();
+  JButton jBtCalc = new JButton();
+  JComboBox jCmBxModel = new JComboBox();
+  JCheckBox jChBxRst = new JCheckBox();
+  NrNetPnl jPnNrNet = new NrNetPnl();
+  JPanel jPanel1 = new JPanel();
+  JLabel jLabStatusBar = new JLabel();
+  TitledBorder titledBorder1;
+
+  NeuronNet nrn;
+
+  int neurXY[][][];
+  int iQNTIn;
+  int iQNTOut;
+  int iQntLay;
+  int WWidth, WHeight;
+
+  static final int iXStart=5;//iYStart=100,
+  static final int iXSteep=35, iYNxtLy=70;//, iYNxtLyW=50;
+  static final int iYMenu=40;//, iYIn=65, iYOut=60;
+  static final int NrRad=30;//Радиус отображаемого нейрона
+  static final int iValMin=-5, iValMax=5;
+
+  // Construct the frame
+  public NrNetFrame() {
+    enableEvents(AWTEvent.WINDOW_EVENT_MASK);
+    try {
+      jbInit();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  // Component initialization
+  private void jbInit() throws Exception {
+    contentPane = (JPanel) this.getContentPane();
+    titledBorder1 = new TitledBorder("");
+    this.setTitle("Neuron Network");
+    this.setDefaultCloseOperation(3);
+  //Создаем меню
+    this.setJMenuBar(jMenuBar1);
+    jMenuFile.setText("File");
+    jMenuFileOpen.setText("Open");
+    jMenuFileOpen.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jMenuFileOpen_actionPerformed(e);
+      }
+    });
+    jMenuFileSave.setText("Save");
+    jMenuFileSave.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jMenuFileSave_actionPerformed(e);
+      }
+    });
+    jMenuFileExit.setText("Exit");
+    jMenuFileExit.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jMenuFileExit_actionPerformed(e);
+      }
+    });
+    jMenuNrNet.setText("Neuron Net");
+    jMenuNrNetSetIn.setText("Задать входы сети...");
+    jMenuNrNetSetIn.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jMenuNrNetSetIn_actionPerformed(e);
+      }
+    });
+    jMenuNrNetSetTch.setText("Задать парам. обучения выходов...");
+    jMenuNrNetSetTch.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jMenuNrNetSetTch_actionPerformed(e);
+      }
+    });
+    jMenuNrNetOnlReset.setText("Сбросить расчет сети");
+    jMenuNrNetOnlReset.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jMenuNrNetOnlReset_actionPerformed(e);
+      }
+    });
+    jChBxRst.setText("Сбр. сеть");
+    jMenuNrNetTeach.setText("Обучение сети...");
+    jMenuNrNetTeach.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jMenuNrNetTeach_actionPerformed(e);
+      }
+    });
+    jMenuNrNetReset.setText("Обнулить сеть");
+    jMenuNrNetReset.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jMenuNrNetReset_actionPerformed(e);
+      }
+    });
+    jMenuNrNetCalc.setText("Расчет сети...");
+    jMenuNrNetCalc.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jMenuNrNetCalc_actionPerformed(e);
+      }
+    });
+    jCmBxModel.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jCmBxModel_actionPerformed(e);
+      }
+    });
+/*    jCmBxModel.addInputMethodListener(new java.awt.event.InputMethodListener() {
+      public void inputMethodTextChanged(InputMethodEvent e) {
+      }
+    });*/
+    jLabStatusBar.setHorizontalTextPosition(SwingConstants.LEADING);
+    jPanel1.setBorder(BorderFactory.createEtchedBorder());
+    jMenuFile.add(jMenuFileOpen);
+    jMenuFile.add(jMenuFileSave);
+    jMenuFile.addSeparator();
+    jMenuFile.add(jMenuFileExit);
+    jMenuNrNet.add(jMenuNrNetSetIn);
+    jMenuNrNet.add(jMenuNrNetSetTch);
+    jMenuNrNet.addSeparator();
+    jMenuNrNet.add(jMenuNrNetReset);
+    jMenuNrNet.add(jMenuNrNetOnlReset);
+    jMenuNrNet.addSeparator();
+    jMenuNrNet.add(jMenuNrNetTeach);
+    jMenuNrNet.add(jMenuNrNetCalc);
+    jMenuHelp.setText("Help");
+    jMenuHelpAbout.setText("About");
+    jMenuHelpAbout.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jMenuHelpAbout_actionPerformed(e);
+      }
+    });
+    jMenuHelp.add(jMenuHelpAbout);
+    jMenuBar1.add(jMenuFile);
+    jMenuBar1.add(jMenuNrNet);
+    jMenuBar1.add(jMenuHelp);
+
+    jToolBar1.setAlignmentX((float) 0.0);
+    jToolBar1.setAlignmentY((float) 0.0);
+    jToolBar1.setFloatable(false);
+    jBtTeach.setText("Обучить");
+    jBtTeach.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jBtTeach_actionPerformed(e);
+      }
+    });
+    jBtCalc.setSelected(true);
+    jBtCalc.setText("Рассчитать");
+    jBtCalc.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        jBtCalc_actionPerformed(e);
+      }
+    });
+    jCmBxModel.setPreferredSize(new Dimension(50, 21));
+    jCmBxModel.addItem("Модель 1");
+    jCmBxModel.addItem("Модель 2");
+    jCmBxModel.addItem("Модель 3");
+    jCmBxModel.addItem("Модель 4");
+    jCmBxModel.addItem("Модель 5");
+    jCmBxModel.addItem("Модель 6");
+    jCmBxModel.addItem("Модель 7");
+    jCmBxModel.addItem("Модель 8");
+    jCmBxModel.setSelectedIndex(2);
+    jPnNrNet.addMouseListener(new java.awt.event.MouseAdapter() {
+      public void mouseClicked(MouseEvent e) {
+        jPnNrNet_mouseClicked(e);
+      }
+    });
+    jPnNrNet.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+      public void mouseMoved(MouseEvent e) {
+        jPnNrNet_mouseMoved(e);
+      }
+    });
+    jToolBar1.add(jBtCalc, null);
+    jToolBar1.add(jBtTeach, null);
+    jToolBar1.add(jChBxRst, null);
+    jToolBar1.add(jCmBxModel, null);
+    jPanel1.setMinimumSize(new Dimension(20, 25));
+    jPanel1.setPreferredSize(new Dimension(20, 25));
+    jLabStatusBar.setText("");
+    jPanel1.add(jLabStatusBar, null);
+    contentPane.add(jToolBar1,  BorderLayout.NORTH);
+    contentPane.add(jPnNrNet,  BorderLayout.CENTER);
+    contentPane.add(jPanel1, BorderLayout.SOUTH);
+    setNrNet(true);
+    jPnNrNet.setNrNet(nrn,neurXY,iQntLay);
+    this.pack();
+    if(this.getWidth()>WWidth)
+      WWidth=getWidth();
+    this.setSize(new Dimension(WWidth, WHeight+120));
+    contentPane.setPreferredSize(new Dimension(WWidth, WHeight+120));
+    jPnNrNet.setPreferredSize(new Dimension(WWidth, WHeight));
+  }
+
+  //Overridden so we can exit when window is closed
+  protected void processWindowEvent(WindowEvent e) {
+    super.processWindowEvent(e);
+    if (e.getID() == WindowEvent.WINDOW_CLOSING) {
+      System.exit(0);
+    }
+  }
+
+  //File | Open action performed
+  public void jMenuFileOpen_actionPerformed(ActionEvent e) {
+        String holdstr;
+
+        FileDialog lfd = new FileDialog(getFrame(), "Load data...", FileDialog.LOAD);
+        lfd.show();
+        String filename = lfd.getFile();
+        String filepath = lfd.getDirectory() + lfd.getFile();;
+
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(filepath));
+/***********************************************************/
+            String strLine;
+            strLine=in.readLine();
+            if(!(strLine.equals("#NeuralNetwok network data file") || strLine.equals("#NeuralNetwok network teach analyse net temp data file"))) {System.err.println("Invalid network data file: " + filename);in.close();return; }
+            do {strLine=in.readLine();} while(strLine.startsWith("#"));
+            if (!strLine.equals("[Calc model]")) { System.err.println("Invalid network data file: " + filename); in.close(); return; }
+            do {strLine=in.readLine();} while(strLine.startsWith("#"));
+            int iCalcMd=Integer.valueOf(strLine).intValue();
+            do {strLine=in.readLine();} while(strLine.startsWith("#"));
+            if (!strLine.equals("[Teach model]")) { System.err.println("Invalid network data file: " + filename); in.close(); return; }
+            do {strLine=in.readLine();} while(strLine.startsWith("#"));
+            int iTeachMd=Integer.valueOf(strLine).intValue();
+            do {strLine=in.readLine();} while(strLine.startsWith("#"));
+            if (!strLine.equals("[Quantity layers]")) { System.err.println("Invalid network data file: " + filename); in.close(); return; }
+            do {strLine=in.readLine();} while(strLine.startsWith("#"));
+            int iQntLy=Integer.valueOf(strLine).intValue();
+            nrn.CreateNrNet(iQntLy,iCalcMd,iTeachMd);
+            for(int i=0;i<iQntLy;i++) {
+              do {strLine=in.readLine();} while(strLine.startsWith("#"));
+              if (!strLine.equals("[Quantity Neurons In Layer: "+i+"]")) { System.err.println("Invalid network data file: " + filename); in.close(); return; }
+              do {strLine=in.readLine();} while(strLine.startsWith("#"));
+              int iQntLyNr=Integer.valueOf(strLine).intValue();
+              nrn.CreateLyNrNet(i,iQntLyNr);
+              for(int j=0;j<iQntLyNr;j++) {
+                do {strLine=in.readLine();} while(strLine.startsWith("#"));
+                if (!strLine.equals("[Neuron "+i+":"+j+"]")) { System.err.println("Invalid network data file: " + filename); in.close(); return; }
+                /*Параметры нейрона*/
+                holdstr = in.readLine();
+                int iQntIn=0,iMod=0,iActFn=0;
+                short shSt=0;
+                String szText="";
+                int iQntCnct=0;
+
+                int iStrNum=0,iEndNum;
+                char chNr[]=holdstr.toCharArray();
+                int len=holdstr.length();
+                int iNumVal=0; /*Порядковый номер текущего значения*/
+                for(int k=0;k<len;k++) {
+                  if(chNr[k]=='\t' || k==(len-1)) {
+                    if(k!=(len-1)) iEndNum=k;
+                    else {
+                      if(chNr[k]!='\t') iEndNum=len;
+                      else iEndNum=k;
+                    }
+                    String sz=holdstr.substring(iStrNum,iEndNum);
+                    switch (iNumVal++) {
+                      case 0:
+                        iQntIn=Integer.valueOf(sz).intValue();
+                        break;
+                      case 1:
+                        iQntCnct=Integer.valueOf(sz).intValue();
+                        break;
+                      case 2:
+                        iMod=Integer.valueOf(sz).intValue();
+                        break;
+                      case 3:
+                        iActFn=Integer.valueOf(sz).intValue();
+                        break;
+                      case 4:
+                        shSt=Short.valueOf(sz).shortValue();
+                        break;
+                      case 5:
+                        szText=holdstr.substring(iStrNum,len); /*Описание нейрона последнее и может содеражть табуляцию*/
+                        k=len;
+                        break;
+                    }
+                    iStrNum=iEndNum+1;
+                  }
+                }
+
+                /*Связи нейрона*/
+                do {strLine=in.readLine();} while(strLine.startsWith("#"));
+                holdstr = strLine;
+                iStrNum=0;
+                char chCn[]=holdstr.toCharArray();
+                len=holdstr.length();
+                int iArCnct[][]=new int[3][iQntCnct];
+                iNumVal=0;
+                for(int k=0;k<len;k++) {
+                  if(chCn[k]=='\t' || k==(len-1)) {
+                    if(k!=(len-1)) iEndNum=k;
+                    else iEndNum=len;
+                    String sz=holdstr.substring(iStrNum,iEndNum);
+                    char chSub[]=sz.toCharArray();
+                    boolean blFirstVl=true;
+                    int p=0;
+                    for(int l=0;l<sz.length();l++) {
+                      if(chSub[l]==':') {
+                        if(blFirstVl) {
+                          iArCnct[0][iNumVal]=Integer.valueOf(sz.substring(0,l)).intValue();
+                          blFirstVl=false;
+                          p=l;
+                        }
+                        else {
+                          iArCnct[1][iNumVal]=Integer.valueOf(sz.substring(p+1,l)).intValue();
+                          iArCnct[2][iNumVal++]=Integer.valueOf(sz.substring(l+1,sz.length())).intValue();
+                          break;
+                        }
+                      }
+                    }
+                    iStrNum=iEndNum+1;
+                  }
+                }
+                nrn.CreateNrnNrNet(i,j,iQntIn,iMod,iActFn,iArCnct,shSt,szText);
+
+                /*Веса входов нейрона*/
+                holdstr = in.readLine();
+                iStrNum=0;
+                char chW[]=holdstr.toCharArray();
+                len=holdstr.length();
+                float flW[]=new float[iQntIn];
+                iNumVal=0;
+                for(int k=0;k<len;k++) {
+                  if(chW[k]=='\t' || k==(len-1)) {
+                    if(k!=(len-1)) iEndNum=k;
+                    else iEndNum=len;
+                    String sz=holdstr.substring(iStrNum,iEndNum);
+                    nrn.setW(i,j,iNumVal++,Float.valueOf(sz).floatValue());
+                    iStrNum=iEndNum+1;
+                  }
+                }
+              }
+            }
+            in.close();
+        } catch (java.io.IOException ioe) {
+            System.err.println("Error reading network data file: " + filename);
+        }
+
+      setNrNet(false);
+      jPnNrNet.setNrNet(nrn,neurXY,iQntLay);
+      this.pack();
+      if(this.getWidth()>WWidth)
+        WWidth=getWidth();
+      this.setSize(new Dimension(WWidth, WHeight+120));
+      contentPane.setPreferredSize(new Dimension(WWidth, WHeight+120));
+      jPnNrNet.setPreferredSize(new Dimension(WWidth, WHeight));
+  }
+
+  //File | Open action performed
+  public void jMenuFileSave_actionPerformed(ActionEvent e) {
+        String holdstr;
+
+        FileDialog lfd = new FileDialog(getFrame(), "Save data...", FileDialog.SAVE);
+        lfd.show();
+        String filename = lfd.getFile();
+        String filepath = lfd.getDirectory() + lfd.getFile();;
+
+        try {
+          BufferedWriter outn = new BufferedWriter(new FileWriter(filepath));
+          outn.write("#NeuralNetwok network data file\n");
+          outn.write("[Calc model]\n");
+          outn.write(nrn.getCalcAlg()+"\n");
+          outn.write("[Teach model]\n");
+          outn.write(nrn.getTeachAlg()+"\n");
+          outn.write("[Quantity layers]\n");
+          int iQntLay=nrn.getQntNetLayers();
+          outn.write(iQntLay+"\n");
+          for(int i=0;i<iQntLay;i++) {
+            outn.write("[Quantity Neurons In Layer: "+i+"]\n");
+            int iQntLyNr=nrn.getQntNetLayerNeurons(i);
+            outn.write(iQntLyNr+"\n");
+            for(int j=0;j<iQntLyNr;j++) {
+              outn.write("[Neuron "+i+":"+j+"]\n");
+              String strNrn, strNrnW="", strNrnCnct="";
+              strNrn=nrn.getNrnQntIn(i,j)+"\t";
+              strNrn+=nrn.getQntCnct(i,j)+"\t";
+              strNrn+=nrn.getNrnModel(i,j)+"\t";
+              strNrn+=nrn.getNrnActFunc(i,j)+"\t";
+              strNrn+=nrn.getNeurStatus(i,j)+"\t";
+              strNrn+=nrn.getNText(i,j);
+
+              int iQntCnct=nrn.getQntCnct(i,j);
+              for(int k=0;k<iQntCnct;k++) {
+                strNrnCnct+=nrn.getLayer(i,j,k)+":";
+                strNrnCnct+=nrn.getNrnNum(i,j,k)+":";
+                strNrnCnct+=nrn.getNumIn(i,j,k);
+                if(k!=(iQntCnct-1)) strNrnCnct+="\t";
+              }
+
+              float flW[]=nrn.getW(i,j);
+              for (int k=0;k<flW.length;k++) {
+                strNrnW+=flW[k];
+                if(k!=(flW.length-1)) strNrnW+="\t";
+              }
+
+              outn.write(strNrn+"\n");
+              outn.write(strNrnCnct+"\n");
+              outn.write(strNrnW+"\n");
+            }
+          }
+
+          outn.close();
+        } catch (java.io.IOException ioe) {
+            System.err.println("Error writing network data file: " +
+                                   filename);
+        }
+  }
+
+  //File | Exit action performed
+  public void jMenuFileExit_actionPerformed(ActionEvent e) {
+    System.exit(0);
+  }
+
+
+  public Frame getFrame() {
+     Component c = this;
+     while (c != null && !(c instanceof Frame)) {
+       c = c.getParent();
+     }
+     return (Frame) c;
+ }
+
+
+  //Help | About action performed
+  public void jMenuHelpAbout_actionPerformed(ActionEvent e) {
+/*    NrInfoFrame frame = new NrInfoFrame("");
+    frame.setVisible(true);*/
+  }
+
+  void jMenuNrNetSetIn_actionPerformed(ActionEvent e) {
+    NrNetInpFrame frame = new NrNetInpFrame(jPnNrNet,nrn);
+    frame.pack();
+    frame.setVisible(true);
+  }
+
+  void jMenuNrNetSetTch_actionPerformed(ActionEvent e) {
+    NrNetSetTchFrame frame = new NrNetSetTchFrame(jPnNrNet,nrn);
+    frame.pack();
+    frame.setVisible(true);
+  }
+
+  void jMenuNrNetReset_actionPerformed(ActionEvent e) {
+    nrn.netReset();
+    jPnNrNet.paint(jPnNrNet.getGraphics());
+  }
+
+  void jMenuNrNetOnlReset_actionPerformed(ActionEvent e) {
+    nrn.netOnlyNetReset();
+    jPnNrNet.paint(jPnNrNet.getGraphics());
+  }
+
+  void jMenuNrNetTeach_actionPerformed(ActionEvent e) {
+    NrNetTeachFrame frame = new NrNetTeachFrame(jPnNrNet,nrn);
+    frame.pack();
+    frame.setVisible(true);
+  }
+
+  void jMenuNrNetCalc_actionPerformed(ActionEvent e) {
+    NrNetCalcFrame frame = new NrNetCalcFrame(jPnNrNet,nrn);
+    frame.pack();
+    frame.setVisible(true);
+  }
+
+  void jBtTeach_actionPerformed(ActionEvent e) {
+    if(jChBxRst.isSelected())
+      nrn.netOnlyNetReset();
+    nrn.teachNet();
+    nrn.calcNet();
+    jPnNrNet.paint(jPnNrNet.getGraphics());
+  }
+  void jBtCalc_actionPerformed(ActionEvent e) {
+    if(jChBxRst.isSelected())
+      nrn.netOnlyNetReset();
+    nrn.calcNet();
+    jPnNrNet.paint(jPnNrNet.getGraphics());
+  }
+
+  void setNrNet(boolean blIntModel){
+    int iNet,iActFunc=2;
+    int i;
+
+    if(blIntModel) {
+      iNet=jCmBxModel.getSelectedIndex();
+//    if(iNet==4 || iNet==5) iActFunc=0;
+      nrn=new NeuronNet(1,iActFunc,0,0,iNet);
+    }
+
+    iQntLay=nrn.getQntNetLayers();
+    iQNTIn=nrn.getQntInptNeuron();
+    iQNTOut=nrn.getQntOutpNeuron();
+
+    int iMaxNr=0;
+    for(i=0;i<iQntLay;i++) {
+      int iQntNeur=nrn.getQntNetLayerNeurons(i);
+      if(iMaxNr<iQntNeur) iMaxNr=iQntNeur;
+    }
+
+    int WWidth1=iQNTIn*iXSteep+10+35;//35-Все опять же неправильный вывод W
+    int WWidth2=iQNTOut*(iXSteep+20)+10+35;
+    int WWidth3=iMaxNr*iXSteep+10+35;
+    if(WWidth1>WWidth2) WWidth=WWidth1;
+    else WWidth=WWidth2;
+    if(WWidth<WWidth3) WWidth=WWidth3;
+
+//Расчет координат размещение нейронов
+    neurXY=new int[iQntLay][][];
+
+    int y=0;
+    for(i=0;i<iQntLay;i++)
+    {
+      int iQntNeur=nrn.getQntNetLayerNeurons(i);
+
+      neurXY[i]=new int[iQntNeur][];
+      int x=(WWidth-2*iXStart-iQntNeur*iXSteep)/2+iXStart;
+      for(int j=0;j<iQntNeur;j++) {
+        float fW[];
+        fW=nrn.getW(i,j);
+        int iQntW=fW.length;
+        neurXY[i][j]=new int[2];
+        neurXY[i][j][0]=x;
+        neurXY[i][j][1]=y;
+        x+=iXSteep;
+      }
+      y+=iYNxtLy;
+    }
+    WHeight=y;
+  }
+
+  void jPnNrNet_mouseMoved(MouseEvent e) {
+    mouseOper(e, 1);
+  }
+  void jPnNrNet_mouseClicked(MouseEvent e) {
+    mouseOper(e, 0);
+  }
+
+  void mouseOper(MouseEvent e, int iMOper) {
+    boolean blFind=false;
+    int mx=e.getX();
+    int my=e.getY();
+
+    for(int i=0;i<iQntLay;i++) {
+      int iQntNeur=nrn.getQntNetLayerNeurons(i);
+      for(int j=0;j<iQntNeur;j++) {
+        int nx=neurXY[i][j][0];
+        int ny=neurXY[i][j][1];
+        if(mx>nx &&
+           mx<(nx+NrRad) &&
+           my>ny &&
+           my<(ny+NrRad))
+        {
+           blFind=true;
+           switch(iMOper){
+             case 0:
+               float fW[];
+               fW=nrn.getW(i,j);
+               String str;
+               str=nrn.getNText(i,j);
+               NrInfoFrame frame;
+               if(str!=null)
+                 frame=new NrInfoFrame(jPnNrNet,"Нейрон N"+j+" слоя "+i+" - "+str,nrn,i,j);
+               else
+                 frame=new NrInfoFrame(jPnNrNet,"Нейрон N"+j+" слоя "+i,nrn,i,j);
+               frame.pack();
+               frame.setVisible(true);
+               break;
+             case 1:
+                 jLabStatusBar.setText(nrn.getNText(i,j));
+               break;
+             default:
+               break;
+           }
+           break;
+        }
+      }
+      if(blFind) break;
+    }
+    if(!blFind)
+      jLabStatusBar.setText("");;
+  }
+
+  void jCmBxModel_actionPerformed(ActionEvent e) {
+      setNrNet(true);
+      jPnNrNet.setNrNet(nrn,neurXY,iQntLay);
+      this.pack();
+      if(this.getWidth()>WWidth)
+        WWidth=getWidth();
+      this.setSize(new Dimension(WWidth, WHeight+120));
+      contentPane.setPreferredSize(new Dimension(WWidth, WHeight+120));
+      jPnNrNet.setPreferredSize(new Dimension(WWidth, WHeight));
+  }
+
+}

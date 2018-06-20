@@ -1,0 +1,1 @@
+"C:\Program Files\JBuilder6\jdk1.3.1\bin\appletviewer.exe" NeuronNetwork.html
